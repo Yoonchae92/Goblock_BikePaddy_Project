@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"net/http"
 	"os"
-	"strings"
 
 	"goweb/web22-1/model"
 
@@ -69,6 +68,11 @@ func (a *AppHandler) getCommunityHandler(w http.ResponseWriter, r *http.Request)
 
 func (a *AppHandler) getFileHandler(w http.ResponseWriter, r *http.Request) {
 	list := a.db5.GetFile() //model -> a.db로 바꾼다
+	rd.JSON(w, http.StatusOK, list)
+}
+
+func (a *AppHandler) getAdminHandler(w http.ResponseWriter, r *http.Request) {
+	list := a.db.GetMemberAdmin() //model -> a.db로 바꾼다
 	rd.JSON(w, http.StatusOK, list)
 }
 
@@ -154,6 +158,17 @@ func (a *AppHandler) removeFileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (a *AppHandler) removeAdminHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	ok := a.db.RemoveMemberAdmin(id)
+	if ok {
+		rd.JSON(w, http.StatusOK, Success{true})
+	} else {
+		rd.JSON(w, http.StatusOK, Success{false})
+	}
+}
+
 //핸들러들을 (a *AppHandler)메소드로 바꾼다
 func (a *AppHandler) Close() { //새롭게 Close()를 외부에서 만들어 준 것.
 	a.db.Close() //model -> a.db로 바꾼다
@@ -163,32 +178,32 @@ func (a *AppHandler) Close() { //새롭게 Close()를 외부에서 만들어 준
 	a.db5.Close5()
 }
 
-func CheckSignin(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	// if request URL is /signin.html, then next()
-	if strings.Contains(r.URL.Path, "/signin") ||
-		strings.Contains(r.URL.Path, "/auth") {
-		next(w, r)
-		return
-	}
+// func CheckSignin(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+// 	// if request URL is /signin.html, then next()
+// 	if strings.Contains(r.URL.Path, "/signin") ||
+// 		strings.Contains(r.URL.Path, "/auth") {
+// 		next(w, r)
+// 		return
+// 	}
 
-	// if user already signed in
-	sessionID := getSesssionID(r)
-	if sessionID != "" {
-		next(w, r)
-		return
-	}
+// 	// if user already signed in
+// 	sessionID := getSesssionID(r)
+// 	if sessionID != "" {
+// 		next(w, r)
+// 		return
+// 	}
 
-	// if not user sign in
-	// redirect singin.html
-	http.Redirect(w, r, "/signin.html", http.StatusTemporaryRedirect)
-}
+// 	// if not user sign in
+// 	// redirect singin.html
+// 	http.Redirect(w, r, "/signin.html", http.StatusTemporaryRedirect)
+// }
 
 func MakeHandler(filepath string) *AppHandler {
 	r := mux.NewRouter()
 	n := negroni.New(
 		negroni.NewRecovery(),
 		negroni.NewLogger(),
-		negroni.HandlerFunc(CheckSignin),
+		//negroni.HandlerFunc(CheckSignin),
 		negroni.NewStatic(http.Dir("public")))
 	n.UseHandler(r)
 
@@ -205,6 +220,9 @@ func MakeHandler(filepath string) *AppHandler {
 	r.HandleFunc("/members", a.getMemberListHandler).Methods("GET")
 	r.HandleFunc("/members", a.addMemberHandler).Methods("POST")
 	r.HandleFunc("/members/{id:[0-9]+}", a.removeMemberHandler).Methods("DELETE")
+	//admin 핸들러
+	r.HandleFunc("/admin", a.getAdminHandler).Methods("GET")
+	r.HandleFunc("/admin/{id:[0-9]+}", a.removeAdminHandler).Methods("DELETE")
 	//workout 핸들러
 	r.HandleFunc("/workouttime", a.getWorkOutHandler).Methods("GET")
 	//mydata 핸들러

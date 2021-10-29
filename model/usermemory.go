@@ -13,23 +13,29 @@ func (m *memoryHandler) GetMembers() []*Member {
 	return list
 }
 
+func (m *memoryHandler) GetMemberAdmin() []*Member {
+	list := []*Member{}
+	for _, v := range m.memberMap {
+		list = append(list, v)
+	}
+	return list
+}
+
 func (m *memoryHandler) AddMember(id string, pswd string, name string, birth string, gender string, email string, area string, bike_info string, career string, club string) *Member {
 	member := &Member{id, pswd, name, birth, gender, email, area, bike_info, career, club}
 	m.memberMap[id] = member
 	return member
 }
 
-/*
-func (m *memoryHandler) UpdateMember(id string, pswd string, email string, area string, bike_info string, career string, club string) *Member {
-	member := Member{}
+func (m *memoryHandler) RemoveMember(id string) bool {
 	if _, ok := m.memberMap[id]; ok { // memberMap id 값이 있으면
 		delete(m.memberMap, id) //지우고
-		return member
+		return true
 	}
-	return
+	return false
 }
-*/
-func (m *memoryHandler) RemoveMember(id string) bool {
+
+func (m *memoryHandler) RemoveMemberAdmin(id string) bool {
 	if _, ok := m.memberMap[id]; ok { // memberMap id 값이 있으면
 		delete(m.memberMap, id) //지우고
 		return true
