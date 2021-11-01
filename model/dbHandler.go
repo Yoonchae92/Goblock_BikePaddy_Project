@@ -56,7 +56,7 @@ type MembersDBHandler interface {
 	GetMembers() []*Member
 	GetMemberAdmin() []*Member
 	AddMember(id string, pswd string, name string, birth string, gender string, email string, area string, bike_info string, career string, club string) *Member
-	GetLoginChk(id string, pw string) *Member
+	GetLoginChk(id string, pswd string) *Member
 	RemoveMember(id string) bool
 	RemoveMemberAdmin(id string) bool
 	Close() //인스턴스를 사용하는 측에 대문자로 인터페이스를 추가하고 외부 공개

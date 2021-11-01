@@ -51,20 +51,20 @@ func (s *SqliteHandler) AddMember(id string, pswd string, name string, birth str
 	return &member
 }
 
-func (s *SqliteHandler) GetLoginChk(id string, pw string) *Member {
-	fmt.Println("GetLoginChk ::: id=" + id + " pw=" + pw)
-	stmt, err := s.db.Prepare("SELECT id, name FROM members WHERE id= ? ")
+func (s *SqliteHandler) GetLoginChk(id string, pswd string) *Member {
+	fmt.Println("GetLoginChk ::: id=" + id + " pw=" + pswd)
+	stmt, err := s.db.Prepare("SELECT id, name FROM members WHERE id= ? AND pswd= ? ")
 
 	if err != nil {
 		panic(err)
 	}
-	_, err = stmt.Exec(id)
+	_, err = stmt.Exec(id, pswd)
 	if err != nil {
 		panic(err)
 	}
 	var member Member
 
-	err = stmt.QueryRow(id).Scan(&member.ID, &member.Name)
+	err = stmt.QueryRow(id, pswd).Scan(&member.ID, &member.Name)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			// Handle the case of no rows returned.
