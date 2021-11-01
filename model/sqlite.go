@@ -52,7 +52,7 @@ func (s *SqliteHandler) AddMember(id string, pswd string, name string, birth str
 }
 
 func (s *SqliteHandler) GetLoginChk(id string, pswd string) *Member {
-	fmt.Println("GetLoginChk ::: id=" + id + " pw=" + pswd)
+	fmt.Println("GetLoginChk ::: id=" + id + " pswd=" + pswd)
 	stmt, err := s.db.Prepare("SELECT id, name FROM members WHERE id= ? AND pswd= ? ")
 
 	if err != nil {
