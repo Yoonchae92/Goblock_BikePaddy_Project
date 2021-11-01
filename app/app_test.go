@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"goweb/web22-1/model"
+	"web22-1/model"
 
 	"github.com/stretchr/testify/assert"
 )
