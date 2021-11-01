@@ -1,9 +1,9 @@
 package main
 
 import (
-	"goweb/web22-1/app"
 	"log"
 	"net/http"
+	"web22-1/app"
 
 	"github.com/urfave/negroni"
 )
@@ -16,7 +16,7 @@ func main() {
 	n.UseHandler(m)
 
 	log.Print("Started App")
-	err := http.ListenAndServe(":3000", n)
+	err := http.ListenAndServe(":3001", n)
 	if err != nil {
 		panic(err)
 	}
