@@ -13,6 +13,8 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
+	"tech/models"
+
 	_ "github.com/go-sql-driver/mysql"
 
 	"bytes"
@@ -26,22 +28,6 @@ import (
 )
 
 //! board--------------------------------------------------------------
-type Board struct {
-	ID        uint `gorm:"primarykey"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Title     string
-	Author    string
-	Content   string
-}
-
-type PassedData struct {
-	PostData []Board
-	Target   string
-	Value    string
-	PageList []string
-	Page     string
-}
 
 var (
 	gormDB *gorm.DB
@@ -53,8 +39,13 @@ const (
 	MaxPerPage = 100
 )
 
+type CustomError struct {
+	Code    string
+	Message string
+}
+
 //!  session.go------------------------------------------------------------------------
-func getUser(w http.ResponseWriter, req *http.Request) User {
+func getUser(w http.ResponseWriter, req *http.Request) models.User {
 	fmt.Println("getUser()")
 	// get cookie
 	c, err := req.Cookie("session")
@@ -69,7 +60,7 @@ func getUser(w http.ResponseWriter, req *http.Request) User {
 	http.SetCookie(w, c)
 
 	// if the user exists already, get user
-	var u User
+	var u models.User
 
 	un, err := ReadSession(db, c.Value)
 	if err != nil {
@@ -108,24 +99,8 @@ func alreadyLoggedIn(w http.ResponseWriter, req *http.Request) bool {
 
 //!   crud.go----------------------------------------
 // Topic table columns
-type User struct {
-	Id        string
-	Password  string
-	Name      string
-	Created   string
-	BoardUser []Board
-}
-
-type Input struct {
-	Id       string
-	Password string
-}
 
 // CustomError: error type struct
-type CustomError struct {
-	Code    string
-	Message string
-}
 
 func (e *CustomError) Error() string {
 	return e.Code + ", " + e.Message
@@ -190,13 +165,13 @@ func ReadSession(db *sql.DB, sessionId string) (string, error) {
 	return userId, nil
 }
 
-func ReadUserById(db *sql.DB, userId string) (User, error) {
+func ReadUserById(db *sql.DB, userId string) (models.User, error) {
 	fmt.Println("ReadUserById()")
 	row, err := db.Query("select * from user where id = ?", userId)
 	//row, err := db.Query("select * from user")
 	checkError(err)
 	defer row.Close()
-	var user = User{} //! 배열로 받아서 모든 테이블 정보 가져오기 해야함
+	var user = models.User{} //! 배열로 받아서 모든 테이블 정보 가져오기 해야함
 	for row.Next() {
 		err := row.Scan(&user.Id, &user.Password, &user.Created, &user.Name)
 		if err != nil {
@@ -209,14 +184,14 @@ func ReadUserById(db *sql.DB, userId string) (User, error) {
 }
 
 // Read select all data from db
-func ReadUser(db *sql.DB, req *http.Request) (User, *CustomError) {
+func ReadUser(db *sql.DB, req *http.Request) (models.User, *CustomError) {
 	// Read
 	id, pw := req.PostFormValue("id"), req.PostFormValue("password")
 	rows, err := db.Query("select * from user where id = ?", id)
 	checkError(err)
 	defer rows.Close()
 
-	var user = User{}
+	var user = models.User{}
 
 	if !rows.Next() {
 		return user, &CustomError{Code: "401", Message: "ID doesn't exist."}
@@ -334,7 +309,7 @@ func write(w http.ResponseWriter, r *http.Request) {
 		author := r.PostFormValue("author")
 		content := r.PostFormValue("content")
 
-		newPost := Board{Title: title, Author: author, Content: content}
+		newPost := models.Board{Title: title, Author: author, Content: content}
 		gormDB.Create(&newPost)
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -346,7 +321,7 @@ func write(w http.ResponseWriter, r *http.Request) {
 }
 
 func board(w http.ResponseWriter, r *http.Request) {
-	var b []Board
+	var b []models.Board
 
 	page := r.FormValue("page")
 	if page == "" {
@@ -370,7 +345,7 @@ func board(w http.ResponseWriter, r *http.Request) {
 			pgNums, _ := pg.PageNums()
 			pageSlice := getPageList(page, pgNums)
 
-			temp := PassedData{
+			temp := models.PassedData{
 				PostData: b,
 				Target:   target,
 				Value:    keyword,
@@ -391,7 +366,7 @@ func board(w http.ResponseWriter, r *http.Request) {
 			pgNums, _ := pg.PageNums()
 			pageSlice := getPageList(page, pgNums)
 
-			temp := PassedData{
+			temp := models.PassedData{
 				PostData: b,
 				Target:   target,
 				Value:    keyword,
@@ -416,7 +391,7 @@ func board(w http.ResponseWriter, r *http.Request) {
 	pgNums, _ := pg.PageNums()
 	pageSlice := getPageList(page, pgNums)
 
-	temp := PassedData{
+	temp := models.PassedData{
 		PostData: b,
 		PageList: pageSlice,
 		Page:     page,
@@ -427,13 +402,13 @@ func board(w http.ResponseWriter, r *http.Request) {
 func edit(w http.ResponseWriter, r *http.Request) {
 
 	id := strings.TrimPrefix(r.URL.Path, "/edit/")
-	var b Board
+	var b models.Board
 
 	gormDB.First(&b, id)
 
 	if r.Method == http.MethodPost {
 
-		gormDB.Model(&b).Updates(Board{Title: r.PostFormValue("title"), Author: r.PostFormValue("author"), Content: r.PostFormValue("content")})
+		gormDB.Model(&b).Updates(models.Board{Title: r.PostFormValue("title"), Author: r.PostFormValue("author"), Content: r.PostFormValue("content")})
 		var byteBuf bytes.Buffer
 		byteBuf.WriteString("/post/")
 		byteBuf.WriteString(id)
@@ -447,7 +422,7 @@ func post(w http.ResponseWriter, r *http.Request) {
 	// id := r.FormValue("id")
 	id := strings.TrimPrefix(r.URL.Path, "/post/")
 
-	var b Board
+	var b models.Board
 	gormDB.First(&b, id)
 
 	tpl.ExecuteTemplate(w, "post.gohtml", b)
@@ -516,7 +491,7 @@ func main() {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	gormDB.AutoMigrate(&Board{})
+	gormDB.AutoMigrate(&models.Board{})
 	//원래코드
 	//pingDB(db)
 	fmt.Println("Successfully Connected to DB")
