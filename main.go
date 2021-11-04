@@ -25,7 +25,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//1
+//! board--------------------------------------------------------------
 type Board struct {
 	ID        uint `gorm:"primarykey"`
 	CreatedAt time.Time
@@ -53,6 +53,7 @@ const (
 	MaxPerPage = 100
 )
 
+//!  session.go------------------------------------------------------------------------
 func getUser(w http.ResponseWriter, req *http.Request) User {
 	fmt.Println("getUser()")
 	// get cookie
@@ -103,6 +104,9 @@ func alreadyLoggedIn(w http.ResponseWriter, req *http.Request) bool {
 	return true
 }
 
+//!  session.go------------------------------------------------------------------------
+
+//!   crud.go----------------------------------------
 // Topic table columns
 type User struct {
 	Id        string
@@ -321,84 +325,8 @@ func crud() {
 
 }
 
-const (
-	//추가
-	user     = "root"
-	password = "1234"
-	//port     = "3307"
-	database = "user"
-	host     = "127.0.0.1"
-)
+//!   crud.go----------------------------------------
 
-// var db *sql.DB
-// var tpl *template.Template
-var (
-	db               *sql.DB
-	tpl              *template.Template
-	dbSessionCleaned time.Time
-)
-
-//go:embed web
-var content embed.FS
-
-const sessionLength int = 60
-
-func init() {
-	tpl = template.Must(template.ParseGlob("web/templates/*"))
-	dbSessionCleaned = time.Now()
-}
-
-func main() {
-	fmt.Println("Head")
-	var connectionString = fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True", user, password, host, database)
-	var err error
-	fmt.Println("connection check..")
-	// Connect to mysql server
-	db, err = sql.Open("mysql", connectionString)
-	fmt.Println("Connecting to DB..")
-	checkError(err)
-	defer db.Close()
-	//바꾼코드
-	err = db.Ping()
-	gormDB, err = gorm.Open(mysql.New(mysql.Config{
-		Conn: db,
-	}), &gorm.Config{})
-
-	if err != nil {
-		panic("failed to connect database")
-	}
-	gormDB.AutoMigrate(&Board{})
-	//원래코드
-	//pingDB(db)
-	fmt.Println("Successfully Connected to DB")
-
-	http.HandleFunc("/", login)
-
-	http.HandleFunc("/write", write)
-	http.HandleFunc("/board/", board)
-	http.HandleFunc("/post/", post)
-	http.HandleFunc("/edit/", edit)
-
-	http.HandleFunc("/signup", signUp)
-	http.HandleFunc("/index", index)
-	http.HandleFunc("/logout", logout)
-	http.Handle("/web/", http.FileServer(http.FS(staticContent)))
-	fmt.Println("Listening...ss")
-	http.ListenAndServe(":8080", nil)
-}
-
-func index(w http.ResponseWriter, req *http.Request) {
-
-	// var b []Board
-
-	if !alreadyLoggedIn(w, req) {
-		http.Redirect(w, req, "/", http.StatusSeeOther)
-		return
-	}
-	u := getUser(w, req)
-	tpl.ExecuteTemplate(w, "dashboard.html", u) //! html로 바꾸는법~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-}
 func write(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost {
@@ -537,6 +465,90 @@ func getPageList(p string, limit int) []string {
 	return result
 }
 
+//! board.go --------------------------------- 이까지가 board.go
+
+//! account.go ---------------------------------
+const (
+	//추가
+	user     = "root"
+	password = "1234"
+	//port     = "3307"
+	database = "user"
+	host     = "127.0.0.1"
+)
+
+//! account.go ---------------------------------
+
+// var db *sql.DB
+// var tpl *template.Template
+var (
+	db               *sql.DB
+	tpl              *template.Template
+	dbSessionCleaned time.Time
+)
+
+//go:embed web
+var content embed.FS
+
+const sessionLength int = 60
+
+func init() {
+	tpl = template.Must(template.ParseGlob("web/templates/*"))
+	dbSessionCleaned = time.Now()
+}
+
+func main() {
+	fmt.Println("Head")
+	var connectionString = fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True", user, password, host, database)
+	var err error
+	fmt.Println("connection check..")
+	// Connect to mysql server
+	db, err = sql.Open("mysql", connectionString)
+	fmt.Println("Connecting to DB..")
+	checkError(err)
+	defer db.Close()
+	//바꾼코드
+	err = db.Ping()
+	gormDB, err = gorm.Open(mysql.New(mysql.Config{
+		Conn: db,
+	}), &gorm.Config{})
+
+	if err != nil {
+		panic("failed to connect database")
+	}
+	gormDB.AutoMigrate(&Board{})
+	//원래코드
+	//pingDB(db)
+	fmt.Println("Successfully Connected to DB")
+
+	http.HandleFunc("/", login)
+
+	http.HandleFunc("/write", write)
+	http.HandleFunc("/board/", board)
+	http.HandleFunc("/post/", post)
+	http.HandleFunc("/edit/", edit)
+
+	http.HandleFunc("/signup", signUp)
+	http.HandleFunc("/index", index)
+	http.HandleFunc("/logout", logout)
+	http.Handle("/web/", http.FileServer(http.FS(staticContent)))
+	fmt.Println("Listening...ss")
+	http.ListenAndServe(":8080", nil)
+}
+
+func index(w http.ResponseWriter, req *http.Request) {
+
+	// var b []Board
+
+	if !alreadyLoggedIn(w, req) {
+		http.Redirect(w, req, "/", http.StatusSeeOther)
+		return
+	}
+	u := getUser(w, req)
+	tpl.ExecuteTemplate(w, "dashboard.html", u) //! html로 바꾸는법~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+}
+
 func login(w http.ResponseWriter, req *http.Request) { //! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
 	if alreadyLoggedIn(w, req) {
 		http.Redirect(w, req, "/index", http.StatusSeeOther)
@@ -608,3 +620,5 @@ func logout(w http.ResponseWriter, req *http.Request) {
 
 	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
+
+//! main에 남아야 할 내용들...........................................
