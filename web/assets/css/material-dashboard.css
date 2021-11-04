@@ -15365,7 +15365,7 @@ fieldset[disabled] .form-group.is-focused .togglebutton label {
   text-transform: uppercase;
   padding: 5px 0px;
   display: inline-block;
-  font-size: 18px;
+  font-size: 22px;
   color: #3C4858;
   white-space: nowrap;
   font-weight: 400;
@@ -20458,8 +20458,8 @@ Copyright (c) 2015 Daniel Eden
 }
 
 .dark-edition .sidebar .logo .simple-text {
-  color: #a9afbbd1;
-  font-weight: 300;
+  color: #eef4fdd1;
+  font-weight: 500;
 }
 
 .dark-edition .sidebar .logo:after {
