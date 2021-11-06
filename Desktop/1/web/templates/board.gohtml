@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>글 목록</title>
+    <link rel="stylesheet" href="/web/static/css/style.css">
+</head>
+<body>
+    {{$target := .Target}}
+    {{$value := .Value}}
+    {{$page := .Page}}
+
+    <div class="main_title">
+        <h2><a href="/">테크노베이션 랭킹보드</a></h2>
+    </div>
+    <div class="sub_title">
+        {{/* <h3>랭킹게시판</h3> */}}
+    </div>
+    {{range .PostData}}
+        {{/* <div class="post_box"> */}}
+            -유저아이디 <a href="/post/{{.ID}}">{{.Title}}</a>   |||   앞페달{{.ID}}  |||  뒷페달{{.Author}}  |||  뒷페달{{.Content}}<br>
+            
+            {{/* <br><br> */}}
+        {{/* </div> */}}
+    {{ end }}
+    {{/* // <h4><p> -Name : {{.Name}}</p></h4> */}}
+    <div class="page">
+        {{ range .PageList }}
+            {{ if (eq . $page) }}
+                <strong style="color:crimson;text-decoration:underline;">{{ . }}</strong>
+            {{else}}
+                <a href="/board/?target={{$target}}&v={{$value}}&page={{ . }}">{{ . }}</a>
+            {{ end }}
+        {{ end }}
+    </div>
+
+
+    <div class="sub_title">
+        <form method="post">
+            <select name="target">
+                <option value="title">제목</option>
+                <option value="author">작성자</option>
+            </select>
+            <input type="text" name="v">
+            <button type="submit">검색</button>
+        </form>
+    </div>
+</body>
+</html>
