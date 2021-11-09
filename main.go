@@ -25,7 +25,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//! board--------------------------------------------------------------
+//! board----------123123----------------------------------------------------
 type Board struct {
 	ID        uint `gorm:"primarykey"`
 	CreatedAt time.Time
