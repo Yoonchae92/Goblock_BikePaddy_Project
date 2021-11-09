@@ -1,5 +1,6 @@
-module tech
+module VAST-WATERS-21789
 
+// +heroku goVersion go1.16
 go 1.16
 
 require (
